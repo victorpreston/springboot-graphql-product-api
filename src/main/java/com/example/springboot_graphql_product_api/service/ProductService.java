@@ -11,6 +11,9 @@ import com.example.springboot_graphql_product_api.model.Product;
 import com.example.springboot_graphql_product_api.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +46,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "products", key = "#id")
     public Product getProductById(Long id) {
         return productRepository.findById(id)
             .orElseThrow(() -> new ProductNotFoundException(id));
@@ -53,6 +57,7 @@ public class ProductService {
         return productRepository.findByNameContainingIgnoreCase(name);
     }
 
+    @Cacheable(value = "productsByCategory", key = "#category")
     @Transactional(readOnly = true)
     public List<Product> getProductsByCategory(ProductCategory category) {
         return productRepository.findByCategory(category);
@@ -74,6 +79,10 @@ public class ProductService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "productsByCategory", allEntries = true),
+        @CacheEvict(value = "products", allEntries = true)
+    })
     public Product createProduct(CreateProductInput input) {
         Product product = new Product();
         product.setName(input.getName());
@@ -90,6 +99,10 @@ public class ProductService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "products", key = "#id"),
+        @CacheEvict(value = "productsByCategory", allEntries = true)
+    })
     public Product updateProduct(Long id, UpdateProductInput input) {
         Product product = getProductById(id);
         
@@ -107,6 +120,10 @@ public class ProductService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "products", key = "#id"),
+        @CacheEvict(value = "productsByCategory", allEntries = true)
+    })
     public boolean deleteProduct(Long id) {
         Product product = getProductById(id);
         productRepository.delete(product);
@@ -115,6 +132,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public Product updateProductStock(Long id, Integer stock) {
         Product product = getProductById(id);
         product.setStock(stock);
@@ -129,6 +147,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public Product updateProductStatus(Long id, ProductStatus status) {
         Product product = getProductById(id);
         product.setStatus(status);
