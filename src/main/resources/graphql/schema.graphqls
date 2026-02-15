@@ -1,0 +1,89 @@
+type Query {
+    products(page: Int = 0, size: Int = 10, sortBy: ProductSortBy): ProductPage!
+    product(id: ID!): Product
+    searchProducts(name: String!): [Product!]!
+    productsByCategory(category: ProductCategory!): [Product!]!
+    productsByStatus(status: ProductStatus!): [Product!]!
+    productsByPriceRange(minPrice: Float!, maxPrice: Float!): [Product!]!
+    activeProductsUnderPrice(maxPrice: Float!): [Product!]!
+}
+
+type Mutation {
+    createProduct(input: CreateProductInput!): Product!
+    updateProduct(id: ID!, input: UpdateProductInput!): Product!
+    deleteProduct(id: ID!): Boolean!
+    updateProductStock(id: ID!, stock: Int!): Product!
+    updateProductStatus(id: ID!, status: ProductStatus!): Product!
+}
+
+type Product {
+    id: ID!
+    name: String!
+    description: String
+    price: Float!
+    stock: Int!
+    category: ProductCategory!
+    status: ProductStatus!
+    imageUrl: String
+    createdAt: String!
+    updatedAt: String!
+}
+
+type ProductPage {
+    content: [Product!]!
+    totalElements: Int!
+    totalPages: Int!
+    currentPage: Int!
+    pageSize: Int!
+}
+
+input CreateProductInput {
+    name: String!
+    description: String
+    price: Float!
+    stock: Int!
+    category: ProductCategory!
+    status: ProductStatus!
+    imageUrl: String
+}
+
+input UpdateProductInput {
+    name: String
+    description: String
+    price: Float
+    stock: Int
+    category: ProductCategory
+    status: ProductStatus
+    imageUrl: String
+}
+
+enum ProductCategory {
+    ELECTRONICS
+    CLOTHING
+    FOOD_AND_BEVERAGES
+    HOME_AND_GARDEN
+    SPORTS_AND_OUTDOORS
+    BOOKS_AND_MEDIA
+    TOYS_AND_GAMES
+    HEALTH_AND_BEAUTY
+    AUTOMOTIVE
+    OTHER
+}
+
+enum ProductStatus {
+    ACTIVE
+    INACTIVE
+    DISCONTINUED
+    OUT_OF_STOCK
+}
+
+enum ProductSortBy {
+    NAME_ASC
+    NAME_DESC
+    PRICE_ASC
+    PRICE_DESC
+    CREATED_AT_ASC
+    CREATED_AT_DESC
+    STOCK_ASC
+    STOCK_DESC
+}
