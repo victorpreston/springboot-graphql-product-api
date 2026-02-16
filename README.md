@@ -157,6 +157,10 @@ Cache is automatically cleared on:
 - **brands** - Product manufacturers
 - **categories** - Hierarchical category tree
 - **product_categories** - Many-to-many junction table
+- 
+
+<img width="962" height="513" alt="spring-graphql-products-api" src="https://github.com/user-attachments/assets/68225dee-f1d0-436c-bdd0-191ed8cc49a5" />
+
 
 ## Why Redis?
 
