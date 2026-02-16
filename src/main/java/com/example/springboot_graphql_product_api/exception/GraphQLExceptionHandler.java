@@ -14,8 +14,10 @@ public class GraphQLExceptionHandler extends DataFetcherExceptionResolverAdapter
 
     @Override
     protected GraphQLError resolveToSingleError(Throwable ex, DataFetchingEnvironment env) {
-        if (ex instanceof ProductNotFoundException) {
-            log.error("Product not found: {}", ex.getMessage());
+        if (ex instanceof ProductNotFoundException || 
+            ex instanceof BrandNotFoundException || 
+            ex instanceof CategoryNotFoundException) {
+            log.error("Resource not found: {}", ex.getMessage());
             return GraphqlErrorBuilder.newError()
                     .errorType(ErrorType.NOT_FOUND)
                     .message(ex.getMessage())

@@ -3,11 +3,15 @@ package com.example.springboot_graphql_product_api.service;
 import com.example.springboot_graphql_product_api.dto.CreateProductInput;
 import com.example.springboot_graphql_product_api.dto.ProductPage;
 import com.example.springboot_graphql_product_api.dto.UpdateProductInput;
-import com.example.springboot_graphql_product_api.enums.ProductCategory;
 import com.example.springboot_graphql_product_api.enums.ProductSortBy;
 import com.example.springboot_graphql_product_api.enums.ProductStatus;
+import com.example.springboot_graphql_product_api.enums.ProductType;
 import com.example.springboot_graphql_product_api.exception.ProductNotFoundException;
+import com.example.springboot_graphql_product_api.model.Brand;
+import com.example.springboot_graphql_product_api.model.Category;
 import com.example.springboot_graphql_product_api.model.Product;
+import com.example.springboot_graphql_product_api.repository.BrandRepository;
+import com.example.springboot_graphql_product_api.repository.CategoryRepository;
 import com.example.springboot_graphql_product_api.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +36,8 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final BrandRepository brandRepository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
     public ProductPage getAllProducts(int page, int size, ProductSortBy sortBy) {
@@ -57,10 +65,20 @@ public class ProductService {
         return productRepository.findByNameContainingIgnoreCase(name);
     }
 
-    @Cacheable(value = "productsByCategory", key = "#category")
+    @Cacheable(value = "productsByCategory", key = "#categoryId")
     @Transactional(readOnly = true)
-    public List<Product> getProductsByCategory(ProductCategory category) {
-        return productRepository.findByCategory(category);
+    public List<Product> getProductsByCategory(Long categoryId) {
+        return productRepository.findByCategoryId(categoryId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Product> getProductsByType(ProductType type) {
+        return productRepository.findByType(type);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Product> getProductsByBrand(Long brandId) {
+        return productRepository.findByBrandId(brandId);
     }
 
     @Transactional(readOnly = true)
@@ -89,9 +107,25 @@ public class ProductService {
         product.setDescription(input.getDescription());
         product.setPrice(input.getPrice());
         product.setStock(input.getStock());
-        product.setCategory(input.getCategory());
+        product.setType(input.getType());
         product.setStatus(input.getStatus());
         product.setImageUrl(input.getImageUrl());
+        
+        if (input.getBrandId() != null) {
+            Brand brand = brandRepository.findById(input.getBrandId())
+                .orElseThrow(() -> new IllegalArgumentException("Brand not found with id: " + input.getBrandId()));
+            product.setBrand(brand);
+        }
+        
+        if (input.getCategoryIds() != null && !input.getCategoryIds().isEmpty()) {
+            Set<Category> categories = new HashSet<>();
+            for (Long categoryId : input.getCategoryIds()) {
+                Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + categoryId));
+                categories.add(category);
+            }
+            product.setCategories(categories);
+        }
         
         Product savedProduct = productRepository.save(product);
         log.info("Created product with id: {}", savedProduct.getId());
@@ -110,9 +144,28 @@ public class ProductService {
         if (input.getDescription() != null) product.setDescription(input.getDescription());
         if (input.getPrice() != null) product.setPrice(input.getPrice());
         if (input.getStock() != null) product.setStock(input.getStock());
-        if (input.getCategory() != null) product.setCategory(input.getCategory());
+        if (input.getType() != null) product.setType(input.getType());
         if (input.getStatus() != null) product.setStatus(input.getStatus());
         if (input.getImageUrl() != null) product.setImageUrl(input.getImageUrl());
+        
+        if (input.getBrandId() != null) {
+            Brand brand = brandRepository.findById(input.getBrandId())
+                .orElseThrow(() -> new IllegalArgumentException("Brand not found with id: " + input.getBrandId()));
+            product.setBrand(brand);
+        }
+        
+        if (input.getCategoryIds() != null) {
+            product.getCategories().clear();
+            if (!input.getCategoryIds().isEmpty()) {
+                Set<Category> categories = new HashSet<>();
+                for (Long categoryId : input.getCategoryIds()) {
+                    Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + categoryId));
+                    categories.add(category);
+                }
+                product.setCategories(categories);
+            }
+        }
         
         Product updatedProduct = productRepository.save(product);
         log.info("Updated product with id: {}", updatedProduct.getId());

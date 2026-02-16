@@ -1,7 +1,7 @@
 package com.example.springboot_graphql_product_api.repository;
 
-import com.example.springboot_graphql_product_api.enums.ProductCategory;
 import com.example.springboot_graphql_product_api.enums.ProductStatus;
+import com.example.springboot_graphql_product_api.enums.ProductType;
 import com.example.springboot_graphql_product_api.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    List<Product> findByCategory(ProductCategory category);
+    List<Product> findByType(ProductType type);
 
     List<Product> findByStatus(ProductStatus status);
 
@@ -22,9 +22,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByPriceBetween(BigDecimal minPrice, BigDecimal maxPrice);
 
-    @Query("SELECT p FROM Product p WHERE p.category = :category AND p.status = :status")
-    List<Product> findByCategoryAndStatus(@Param("category") ProductCategory category, 
-                                          @Param("status") ProductStatus status);
+    List<Product> findByBrandId(Long brandId);
+
+    @Query("SELECT p FROM Product p JOIN p.categories c WHERE c.id = :categoryId")
+    List<Product> findByCategoryId(@Param("categoryId") Long categoryId);
 
     @Query("SELECT p FROM Product p WHERE p.price <= :maxPrice AND p.status = 'ACTIVE'")
     List<Product> findActiveProductsUnderPrice(@Param("maxPrice") BigDecimal maxPrice);

@@ -1,9 +1,9 @@
 package com.example.springboot_graphql_product_api.resolver;
 
 import com.example.springboot_graphql_product_api.dto.ProductPage;
-import com.example.springboot_graphql_product_api.enums.ProductCategory;
 import com.example.springboot_graphql_product_api.enums.ProductSortBy;
 import com.example.springboot_graphql_product_api.enums.ProductStatus;
+import com.example.springboot_graphql_product_api.enums.ProductType;
 import com.example.springboot_graphql_product_api.model.Product;
 import com.example.springboot_graphql_product_api.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +39,18 @@ public class ProductQueryResolver {
     }
 
     @QueryMapping
-    public List<Product> productsByCategory(@Argument ProductCategory category) {
-        return productService.getProductsByCategory(category);
+    public List<Product> productsByType(@Argument ProductType type) {
+        return productService.getProductsByType(type);
+    }
+
+    @QueryMapping
+    public List<Product> productsByCategory(@Argument Long categoryId) {
+        return productService.getProductsByCategory(categoryId);
+    }
+
+    @QueryMapping
+    public List<Product> productsByBrand(@Argument Long brandId) {
+        return productService.getProductsByBrand(brandId);
     }
 
     @QueryMapping

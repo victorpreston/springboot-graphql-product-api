@@ -1,7 +1,7 @@
 package com.example.springboot_graphql_product_api.model;
 
-import com.example.springboot_graphql_product_api.enums.ProductCategory;
 import com.example.springboot_graphql_product_api.enums.ProductStatus;
+import com.example.springboot_graphql_product_api.enums.ProductType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +12,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
@@ -37,12 +39,24 @@ public class Product implements Serializable {
     private Integer stock;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
-    private ProductCategory category;
+    @Column(nullable = false, length = 20)
+    private ProductType type;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ProductStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "product_categories",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<Category> categories = new HashSet<>();
 
     @Column(length = 500)
     private String imageUrl;
